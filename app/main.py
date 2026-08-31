@@ -151,7 +151,9 @@ def update_post(
 def approve_post(post_id: int, session: Session = Depends(get_session)) -> Post:
     post = _get_post(post_id, session)
     if post.status not in (PostStatus.draft, PostStatus.failed):
-        raise HTTPException(status_code=409, detail=f"cannot approve a {post.status.value} post")
+        raise HTTPException(
+            status_code=409, detail=f"cannot approve a post with status '{post.status.value}'"
+        )
     post.status = PostStatus.approved
     post.attempts = 0
     post.error = None

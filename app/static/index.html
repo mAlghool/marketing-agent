@@ -13,7 +13,8 @@
       label { display: block; font-size: 13px; margin: 10px 0 4px; color: #4a5160; }
       input, textarea, select, button { width: 100%; box-sizing: border-box; font: inherit; padding: 8px 10px; border: 1px solid #d5d9e0; border-radius: 8px; background: #fff; }
       button { background: #1f6feb; color: #fff; border: none; cursor: pointer; margin-top: 12px; }
-      button.secondary { background: #eef1f5; color: #14171f; margin: 0; width: auto; padding: 5px 10px; font-size: 13px; }
+      button.secondary { background: #eef1f5; color: #14171f; margin: 0; width: auto; padding: 5px 10px; font-size: 13px; white-space: nowrap; }
+      button.secondary:disabled { opacity: 0.4; cursor: not-allowed; }
       table { width: 100%; border-collapse: collapse; font-size: 14px; }
       th, td { text-align: right; padding: 8px; border-bottom: 1px solid #eceef2; vertical-align: top; }
       .status { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #eef1f5; }
@@ -22,6 +23,7 @@
       .status.approved { background: #dbeafe; }
       .row { display: flex; gap: 6px; }
       .muted { color: #6b7280; font-size: 12px; }
+      .error { display: block; margin-top: 6px; color: #b91c1c; }
     </style>
   </head>
   <body>
@@ -80,27 +82,27 @@
           .map(
             (p) => `<tr>
               <td>${p.platform}</td>
-              <td>${p.caption.replace(/</g, "&lt;")}${p.error ? `<div class="muted">${p.error}</div>` : ""}</td>
+              <td>${p.caption.replace(/</g, "&lt;")}${p.error ? `<div class="muted error">${p.error}</div>` : ""}</td>
               <td class="muted">${new Date(p.scheduled_at + "Z").toLocaleString()}</td>
               <td><span class="status ${p.status}">${p.status}</span></td>
               <td class="row">
-                ${p.status === "draft" || p.status === "failed" ? `<button class="secondary" onclick="approve(${p.id})">اعتماد</button>` : ""}
-                ${p.status !== "published" ? `<button class="secondary" onclick="publishNow(${p.id})">نشر الآن</button>` : ""}
+                <button class="secondary" onclick="approve(event, ${p.id})" ${p.status === "draft" || p.status === "failed" ? "" : "disabled"}>اعتماد</button>
+                <button class="secondary" onclick="publishNow(event, ${p.id})" ${p.status === "published" ? "disabled" : ""}>نشر الآن</button>
               </td>
             </tr>`
           )
           .join("");
       }
 
-      async function approve(id) {
-        await api(`/api/posts/${id}/approve`, { method: "POST" }).catch((e) => ($("msg").textContent = e.message));
+      async function act(event, url) {
+        const row = event.target.closest("tr");
+        row.querySelectorAll("button").forEach((b) => (b.disabled = true));
+        await api(url, { method: "POST" }).catch((e) => ($("msg").textContent = e.message));
         loadPosts();
       }
 
-      async function publishNow(id) {
-        await api(`/api/posts/${id}/publish`, { method: "POST" }).catch((e) => ($("msg").textContent = e.message));
-        loadPosts();
-      }
+      const approve = (event, id) => act(event, `/api/posts/${id}/approve`);
+      const publishNow = (event, id) => act(event, `/api/posts/${id}/publish`);
 
       $("generate").onclick = async () => {
         $("msg").textContent = "جاري التوليد...";
