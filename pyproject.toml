@@ -1,0 +1,43 @@
+[project]
+name = "marketing-agent"
+version = "0.1.0"
+description = "AI marketing agent that generates, schedules and publishes social media content"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.6",
+    "sqlmodel>=0.0.22",
+    "apscheduler>=3.10.4",
+    "httpx>=0.27.2",
+    "pydantic-settings>=2.4.0",
+    "openai>=1.51.0",
+    "jinja2>=3.1.4",
+    "python-multipart>=0.0.10",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.6.8",
+    "mypy>=1.11.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B008"]  # FastAPI dependency defaults
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
